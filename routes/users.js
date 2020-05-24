@@ -18,31 +18,34 @@ router.post("/", function (req, res, next) {
 });
 
 router.post("/login", function (req, res, next) {
-  if (!req.body.user.email) {
+  if (!req.body.email) {
     return res.status(422).json({ errors: { email: "can't be blank." } });
   }
-  if (!req.body.user.password) {
+  if (!req.body.password) {
     return res.status(422).json({ errors: { password: "can't be blank." } });
   }
-  
-  passport.authenticate("local", { session: false }, function (
+
+  passport.authenticate("local", { failureRedirect: "/login" }, function (
     err,
-    user,
-    info
+    user
   ) {
     if (err) {
-      
       return next(err);
     }
-    if (user) {
-      user.token = user.generateJWT();
-      return res.json({ user: user.toAuthJSON() });
-    } else {
-      console.log("1")
 
-      return res.status(422).json(info);
-    }
+    req.logIn(user, function (err) {
+      if (err) {
+        return next(err);
+      }
+      return res.json({ user: user.toAuthJSON() });
+    });
   })(req, res, next);
+});
+
+router.get("/test", function (req, res) {
+  console.log("testing");
+  console.log(req.user);
+  return res.json(req.user);
 });
 
 router.get("/", auth.required, function (req, res, next) {
@@ -90,4 +93,12 @@ router.use(function (err, req, res, next) {
   return next(err);
 });
 
+// router.get(
+//   "/twitch/callback",
+//   passport.authenticate("twitch", { failureRedirect: "/" }),
+//   function (req, res) {
+//     // Successful authentication, redirect home.
+//     res.redirect("/");
+//   }
+// );
 module.exports = router;

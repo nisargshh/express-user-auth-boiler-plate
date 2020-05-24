@@ -23,3 +23,17 @@ passport.use(
     }
   )
 );
+
+passport.serializeUser(function (user, cb) {
+  console.log(user);
+  cb(null, user._id);
+});
+
+passport.deserializeUser(function (_id, cb) {
+  User.findById(_id, function (err, user) {
+    if (err) {
+      return cb(err);
+    }
+    cb(null, user);
+  });
+});
